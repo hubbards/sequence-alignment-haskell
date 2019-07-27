@@ -31,12 +31,12 @@ Build the project with the command `stack build`.
 
 ### Test
 
-Test the `Fib` module with the command `stack exec doctest -- src/Fib.hs`.
+Test the `Fib` and `Align` modules with the command `stack test`.
 
 ### GHCi
 
-Run GHCi with the command `stack exec ghci`. In GHCi, load the `Example` module
-with the `:m Example` option.
+Run GHCi with the command `stack exec ghci`. In GHCi, load the `Align` module
+with the `:m Align` option.
 
 ### Run App
 

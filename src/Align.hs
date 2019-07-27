@@ -131,7 +131,40 @@ pretty :: Prob' -> [(Int, Int)] -> Doc
 pretty (Prob' _ _ x y) ls =
   uncurry (on ($$) text) . unzip $ map (\ k -> (x `C.index` fst k, y `C.index` snd k)) ls
 
--- TODO: comment
+-- | Compute solution to instance of optimal alignment problem and pretty print
+--   optimal alignment.
+--
+-- -----------------------------------------------------------------------------
+-- Example for dictionary interface / spell-checking:
+--
+-- >>> :{
+-- let
+--   delta1 = 2
+--   alpha1 x y
+--     | x == y                                                       = 0
+--     | S.member x s && S.member y s || S.member x t && S.member y t = 1
+--     | otherwise                                                    = 3 where
+--     s = S.fromList "aeiouy"
+--     t = S.fromList ['a'..'z'] S.\\ s
+-- in
+--   run (Prob delta1 alpha1 "name" "naem")
+-- :}
+-- na-me
+-- naem-
+--
+-- -----------------------------------------------------------------------------
+-- Example for DNA sequence alignment:
+--
+-- >>> :{
+-- let
+--   delta2     = 1
+--   alpha2 x y = if x == y then -2 else 1
+-- in
+--   run (Prob delta2 alpha2 "ACACACTA" "AGCACACA")
+-- :}
+-- A-CACACTA
+-- AGCACAC-A
+--
 run :: Prob -> Doc
 run p = pretty p' s where
   p' = process p
