@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f12b08ab39de8995ea39c7390cfc97ddf3803112825047d0ab0b79fdd690f52e
+-- hash: 517b65b791998e1ad2b639dd81711d2c8260bc2ca078f989ae135d23d2404664
 
 name:           sequence-alignment-haskell
 version:        0.1.0.0
@@ -19,6 +19,7 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
+    ChangeLog.md
 
 source-repository head
   type: git
@@ -27,7 +28,6 @@ source-repository head
 library
   exposed-modules:
       Align
-      Example
       Fib
   other-modules:
       Paths_sequence_alignment_haskell
