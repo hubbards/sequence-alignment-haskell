@@ -15,9 +15,6 @@ algorithm. The algorithm is adapted from the textbook *Algorithm Design* by Jon
 Kleinberg and Eva Tardos. The function `opt` computes the minimal alignment
 costs and the function `sol` finds the optimal alignment.
 
-The module `Example` contains two examples of sequence alignment from different
-domains.
-
 ## Instructions
 
 We will assume that this project exists locally and we are logged into a shell
