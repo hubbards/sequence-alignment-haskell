@@ -32,19 +32,15 @@
 --   @x@ with the @j@th character of @y@ and @delta@ is the gap penalty. Note
 --   indices are 1-based and the mismatch cost of matching equal characters is
 --   usually zero.
-module Align
-  (
-      Cost
-    , Prob (..)
-    , Prob'
-    , process
-
-    , opt
-    , sol
-    , pretty
-
-    , run
-
+module Align (
+    Cost
+  , Prob (..)
+  , Prob'
+  , process
+  , opt
+  , sol
+  , pretty
+  , run
   ) where
 
 import qualified Data.ByteString.Char8 as C
@@ -59,46 +55,46 @@ import Text.PrettyPrint
 type Cost = Int
 
 -- | Data type for instance of sequence alignment problem.
-data Prob = Prob { gap      :: Cost
-                 , mismatch :: Char -> Char -> Cost
-                 , left     :: String
-                 , right    :: String }
+data Prob = Prob {
+    gap      :: Cost
+  , mismatch :: Char -> Char -> Cost
+  , left     :: String
+  , right    :: String
+  }
 
 -- | Data type for processed instance of sequence alignment problem.
-data Prob' = Prob' { gap'      :: Cost
-                   , mismatch' :: Int -> Int -> Cost
-                   , left'     :: C.ByteString
-                   , right'    :: C.ByteString }
+data Prob' = Prob' {
+    gap'      :: Cost
+  , mismatch' :: Int -> Int -> Cost
+  , left'     :: C.ByteString
+  , right'    :: C.ByteString
+  }
 
 -- | Data type for instance of sequence alignment problem, minimal alignment
 --   costs for subproblems, and optimal alignment.
-data Data = Data { inst  :: Prob
-                 , cost  :: M.Map (Int, Int) Cost
-                 , align :: S.Set (Int, Int) }
+data Data = Data {
+    inst  :: Prob
+  , cost  :: M.Map (Int, Int) Cost
+  , align :: S.Set (Int, Int)
+  }
 
 -- | Process raw instance of sequence alignment problem.
 process :: Prob -> Prob'
-process (Prob delta alpha x y) = Prob' delta alpha' x' y' where
-  x' = C.pack ('-' : x)
-  y' = C.pack ('-' : y)
-  alpha' = \ i j -> alpha (x' `C.index` i) (y' `C.index` j)
-
--- minimum of three values
-min3 :: (Ord a) => a -> a -> a -> a
-min3 x y z
-  | x >= z && y >= z = z
-  | x >= y           = y
-  | otherwise        = x
+process (Prob delta alpha x y) = Prob' delta alpha' x' y'
+  where
+    x' = C.pack ('-' : x)
+    y' = C.pack ('-' : y)
+    alpha' i j = alpha (x' `C.index` i) (y' `C.index` j)
 
 -- | Computation of minimal alignment costs using state monad for memoization.
 opt :: Prob' -> M.Map (Int, Int) Cost
-opt (Prob' delta alpha x y) =
-  execState (optS m n) (M.fromList $ xs ++ ys) where
+opt (Prob' delta alpha x y) = execState (optS m n) (M.fromList $ xs ++ ys)
+  where
     -- initial state
     m = C.length x - 1
     n = C.length y - 1
-    xs = zip (zip [0..m] (repeat 0)) [i * delta | i <- [0..m]]
-    ys = zip (zip (repeat 0) [1..n]) [j * delta | j <- [0..n]]
+    xs = zip (zip [0..m] (repeat 0)) [i * delta | i <- [0 .. m]]
+    ys = zip (zip (repeat 0) [1..n]) [j * delta | j <- [0 .. n]]
     -- computation of minimal alignment costs
     optS :: Int -> Int -> State (M.Map (Int, Int) Cost) Cost
     optS i j = do m <- get
@@ -113,25 +109,34 @@ opt (Prob' delta alpha x y) =
                                   modify (M.insert (i, j) r)
                                   return r
 
+-- minimum of three values
+min3 :: (Ord a) => a -> a -> a -> a
+min3 x y z
+  | x >= z && y >= z = z
+  | x >= y           = y
+  | otherwise        = x
+
 -- | Optimal alignment, back tracks through memoized alignment costs to
 --   construct alignment.
 sol :: Prob' -> M.Map (Int, Int) Cost -> [(Int, Int)]
-sol (Prob' delta _ x y) m =
-  reverse $ helper (C.length x - 1) (C.length y - 1) where
+sol (Prob' delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
+  where
     -- recursive back tracking
+    helper :: Int -> Int -> [(Int, Int)]
     helper i j
-      | i == 0                                   = zip (repeat 0) [1..j]
-      | j == 0                                   = zip [1..i] (repeat 0)
+      | i == 0                                   = zip (repeat 0) [1 .. j]
+      | j == 0                                   = zip [1 .. i] (repeat 0)
       | m M.! (i, j) == delta + m M.! (i - 1, j) = (i, 0) : helper (i - 1) j
       | m M.! (i, j) == delta + m M.! (i, j - 1) = (0, j) : helper i (j - 1)
       | otherwise                                = (i, j) : helper (i - 1) (j - 1)
 
 -- | Pretty print optimal alignment.
 pretty :: Prob' -> [(Int, Int)] -> Doc
-pretty (Prob' _ _ x y) ls =
-  uncurry (on ($$) text) . unzip $ map (\ k -> (x `C.index` fst k, y `C.index` snd k)) ls
+pretty (Prob' _ _ x y) =
+  uncurry (on ($$) text) . unzip
+                         . map (\ (i, j) -> (x `C.index` i, y `C.index` j))
 
--- | Compute solution to instance of optimal alignment problem and pretty print
+-- | Compute solution to instance of sequence alignment problem and pretty print
 --   optimal alignment.
 --
 -- -----------------------------------------------------------------------------
@@ -139,15 +144,15 @@ pretty (Prob' _ _ x y) ls =
 --
 -- >>> :{
 -- let
---   delta1 = 2
---   alpha1 x y
+--   delta = 2
+--   alpha x y
 --     | x == y                                                       = 0
 --     | S.member x s && S.member y s || S.member x t && S.member y t = 1
 --     | otherwise                                                    = 3 where
 --     s = S.fromList "aeiouy"
---     t = S.fromList ['a'..'z'] S.\\ s
+--     t = S.fromList ['a' .. 'z'] S.\\ s
 -- in
---   run (Prob delta1 alpha1 "name" "naem")
+--   run (Prob delta alpha "name" "naem")
 -- :}
 -- na-me
 -- naem-
@@ -157,16 +162,15 @@ pretty (Prob' _ _ x y) ls =
 --
 -- >>> :{
 -- let
---   delta2     = 1
---   alpha2 x y = if x == y then -2 else 1
+--   delta     = 1
+--   alpha x y = if x == y then -2 else 1
 -- in
---   run (Prob delta2 alpha2 "ACACACTA" "AGCACACA")
+--   run (Prob delta alpha "ACACACTA" "AGCACACA")
 -- :}
 -- A-CACACTA
 -- AGCACAC-A
 --
 run :: Prob -> Doc
-run p = pretty p' s where
-  p' = process p
-  m = opt p'
-  s = sol p' m
+run p = pretty p' $ sol p' (opt p')
+  where
+    p' = process p
