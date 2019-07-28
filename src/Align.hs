@@ -93,8 +93,8 @@ opt (Prob' delta alpha x y) = execState (optS m n) (M.fromList $ xs ++ ys)
     -- initial state
     m = C.length x - 1
     n = C.length y - 1
-    xs = zip (zip [0..m] (repeat 0)) [i * delta | i <- [0 .. m]]
-    ys = zip (zip (repeat 0) [1..n]) [j * delta | j <- [0 .. n]]
+    xs = zip (zip [0 .. m] (repeat 0)) [i * delta | i <- [0 .. m]]
+    ys = zip (zip (repeat 0) [1 .. n]) [j * delta | j <- [0 .. n]]
     -- computation of minimal alignment costs
     optS :: Int -> Int -> State (M.Map (Int, Int) Cost) Cost
     optS i j = do m <- get
