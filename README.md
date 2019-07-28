@@ -32,8 +32,8 @@ Test the `Fib` and `Align` modules with the command `stack test`.
 
 ### GHCi
 
-Run GHCi with the command `stack exec ghci`. In GHCi, load the `Align` module
-with the `:m Align` option.
+Run GHCi with the command `stack ghci`. In GHCi, load the `Align` module with
+the `:m Align` option.
 
 ### Run App
 
