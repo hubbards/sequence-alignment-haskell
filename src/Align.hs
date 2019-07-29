@@ -23,9 +23,9 @@
 -- @1 < j@, the following recurrence is satisfied:
 --
 -- @
--- opt ... i j <-> min3 (alpha i j + opt ... (i - 1) (j - 1))
---                      (delta     + opt ... (i - 1) j)
---                      (delta     + opt ... i (j - 1))
+-- opt ... i j = min3 (alpha i j + opt ... (i - 1) (j - 1))
+--                    (delta     + opt ... (i - 1) j)
+--                    (delta     + opt ... i (j - 1))
 -- @
 --
 -- where @alpha i j@ is the mismatch cost of matching the @i@th character of
