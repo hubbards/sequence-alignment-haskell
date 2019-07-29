@@ -1,37 +1,37 @@
 -- | This module contains a dynamic programming algorithm for the sequence
---   alignment problem. The algorithm is adapted from the textbook "Algorithm
---   Design" by Jon Kleinberg and Eva Tardos.
+-- alignment problem. The algorithm is adapted from the textbook "Algorithm
+-- Design" by Jon Kleinberg and Eva Tardos.
 --
---   An alignment of a string @x@ of length @m > 0@ and a string @y@ of length
---   @n > 0@ is a matching of their index sets where no two pairs of indices
---   cross, i.e., a relation from the index set of @x@ to the index set of @y@
---   where the following properties hold:
+-- An alignment of a string @x@ of length @m > 0@ and a string @y@ of length
+-- @n > 0@ is a matching of their index sets where no two pairs of indices
+-- cross, i.e., a relation from the index set of @x@ to the index set of @y@
+-- where the following properties hold:
 --
---   * Each index of either set occures in at most one pair in the relation.
---   * If @(i, j)@ and @(k, l)@ are pairs of indices in the relation with
---     @0 < i <= m@, @0 < j <= n@, and @i < k@, then @j < l@.
+-- * Each index of either set occures in at most one pair in the relation.
+-- * If @(i, j)@ and @(k, l)@ are pairs of indices in the relation with
+--   @0 < i <= m@, @0 < j <= n@, and @i < k@, then @j < l@.
 --
---   An index that is not matched is called a gap and the cost of a gap is given
---   by a parameter @delta > 0@. The cost of a pair of indices @(i, j)@ is the
---   mismatch cost of aligning the @i@th character of @x@ and the @j@th
---   character of @y@, which is given by a (higher-order) parameter @alpha@. The
---   total cost of an alignment is the sum of the cost of the gaps and matched
---   indices.
+-- An index that is not matched is called a gap and the cost of a gap is given
+-- by a parameter @delta > 0@. The cost of a pair of indices @(i, j)@ is the
+-- mismatch cost of aligning the @i@th character of @x@ and the @j@th
+-- character of @y@, which is given by a (higher-order) parameter @alpha@. The
+-- total cost of an alignment is the sum of the cost of the gaps and matched
+-- indices.
 --
---   The minimum cost of an alignment between the first @i@ characters in @x@
---   and the first @j@ charecters in @y@ is @opt ... i j@. For @1 < i@ and
---   @1 < j@, the following recurrence is satisfied:
+-- The minimum cost of an alignment between the first @i@ characters in @x@
+-- and the first @j@ charecters in @y@ is @opt ... i j@. For @1 < i@ and
+-- @1 < j@, the following recurrence is satisfied:
 --
---   @
---   opt ... i j <-> min3 (alpha i j + opt ... (i - 1) (j - 1))
---                        (delta     + opt ... (i - 1) j)
---                        (delta     + opt ... i (j - 1))
---   @
+-- @
+-- opt ... i j <-> min3 (alpha i j + opt ... (i - 1) (j - 1))
+--                      (delta     + opt ... (i - 1) j)
+--                      (delta     + opt ... i (j - 1))
+-- @
 --
---   where @alpha i j@ is the mismatch cost of matching the @i@th character of
---   @x@ with the @j@th character of @y@ and @delta@ is the gap penalty. Note
---   indices are 1-based and the mismatch cost of matching equal characters is
---   usually zero.
+-- where @alpha i j@ is the mismatch cost of matching the @i@th character of
+-- @x@ with the @j@th character of @y@ and @delta@ is the gap penalty. Note
+-- indices are 1-based and the mismatch cost of matching equal characters is
+-- usually zero.
 module Align (
     Cost
   , Prob (..)
@@ -71,7 +71,7 @@ data Prob' = Prob' {
   }
 
 -- | Data type for instance of sequence alignment problem, minimal alignment
---   costs for subproblems, and optimal alignment.
+-- costs for subproblems, and optimal alignment.
 data Data = Data {
     inst  :: Prob
   , cost  :: M.Map (Int, Int) Cost
@@ -117,7 +117,7 @@ min3 x y z
   | otherwise        = x
 
 -- | Optimal alignment, back tracks through memoized alignment costs to
---   construct alignment.
+-- construct alignment.
 sol :: Prob' -> M.Map (Int, Int) Cost -> [(Int, Int)]
 sol (Prob' delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
   where
@@ -137,9 +137,8 @@ pretty (Prob' _ _ x y) =
                          . map (\ (i, j) -> (x `C.index` i, y `C.index` j))
 
 -- | Compute solution to instance of sequence alignment problem and pretty print
---   optimal alignment.
+-- optimal alignment.
 --
--- -----------------------------------------------------------------------------
 -- Example for dictionary interface / spell-checking:
 --
 -- >>> :{
@@ -157,7 +156,6 @@ pretty (Prob' _ _ x y) =
 -- na-me
 -- naem-
 --
--- -----------------------------------------------------------------------------
 -- Example for DNA sequence alignment:
 --
 -- >>> :{
