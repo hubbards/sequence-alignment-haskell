@@ -169,6 +169,6 @@ pretty (Prob' _ _ x y) =
 -- AGCACAC-A
 --
 run :: Prob -> Doc
-run p = pretty p' $ sol p' (opt p')
+run p = pretty p' (sol p' $ opt p')
   where
     p' = process p
