@@ -30,7 +30,7 @@ import Control.Monad.State
 fibR :: Int -> Integer
 fibR 1 = 1
 fibR 2 = 1
-fibR n = (fibR $ n - 1) + (fibR $ n - 2)
+fibR n = fibR (n - 1) + fibR (n - 2)
 
 -- | Computation of Fibonacci numbers using functional array for memoization.
 -- The argument should be a natural number.
