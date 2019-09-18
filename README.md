@@ -24,7 +24,8 @@ This project uses [Stack][stack] to simplify dependency management.
 
 ### Build
 
-Build the project with the command `stack build`.
+Build the project with the command `stack build`. Build the documentation for
+the project with the command `stack haddock`.
 
 ### Test
 
@@ -44,4 +45,10 @@ $ stack exec main-exe -- res/human.fasta res/hamster.fasta
 ```
 Note that this command might take a minute or so to complete.
 
+### Lint
+
+If [HLint][hlint] is on the local path, then lint the project with the command
+`hlint .`.
+
 [stack]: https://www.haskellstack.org
+[hlint]: https://github.com/ndmitchell/hlint
