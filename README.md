@@ -51,4 +51,4 @@ If [HLint][hlint] is on the local path, then lint the project with the command
 `hlint .`.
 
 [stack]: https://www.haskellstack.org
-[hlint]: http://hackage.haskell.org/package/hlint
+[hlint]: https://github.com/ndmitchell/hlint
