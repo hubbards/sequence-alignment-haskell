@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 425fb6d7d246af488e29f046c1b6113e1eff6bef08929b1c39acfdd1e7c29042
+-- hash: b3e9b35474175edf208424c40f62b65b59a9bf1f264beb5736750686807dc8d3
 
 name:           sequence-alignment-haskell
 version:        0.1.0.0
@@ -74,6 +74,7 @@ test-suite tests
     , bytestring
     , containers
     , doctest >=0.8
+    , filepath
     , mtl
     , pretty
     , sequence-alignment-haskell

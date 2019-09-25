@@ -47,4 +47,5 @@ tests:
     source-dirs: test
     dependencies:
     - sequence-alignment-haskell
+    - filepath
     - doctest >= 0.8
