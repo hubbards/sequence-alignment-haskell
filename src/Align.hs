@@ -35,60 +35,97 @@
 module Align (
     Cost
   , Prob (..)
-  , Prob'
+  , ProbP
   , process
   , opt
   , sol
-  , pretty
   , run
+  , pretty
   ) where
 
-import qualified Data.ByteString.Char8 as C
+-- from package transformers
+import Control.Monad.Trans.State (
+    State
+  , get
+  , modify
+  , execState
+  )
+
+-- from package containers
 import qualified Data.Set as S
 import qualified Data.Map as M
-import Data.Function
-import Control.Monad.State
 
-import Text.PrettyPrint
+-- from package bytestring
+import qualified Data.ByteString.Char8 as C
+
+-- from package pretty
+import Text.PrettyPrint (
+    Doc
+  , ($$)
+  , text
+  )
+
+import Data.Function ( on )
+import Control.Monad ( liftM3 )
 
 -- | Type synonym for alignment cost.
 type Cost = Int
 
 -- | Data type for instance of sequence alignment problem.
+--
+-- TODO: use reader monad to simplify functions
+--
 data Prob = Prob {
+  -- | Gap cost
     gap      :: Cost
+  -- | Mismatch cost
   , mismatch :: Char -> Char -> Cost
+  -- | Left string
   , left     :: String
+  -- | Right string
   , right    :: String
   }
 
 -- | Data type for processed instance of sequence alignment problem.
-data Prob' = Prob' {
-    gap'      :: Cost
-  , mismatch' :: Int -> Int -> Cost
-  , left'     :: C.ByteString
-  , right'    :: C.ByteString
+--
+-- TODO: use reader monad to simplify functions
+--
+data ProbP = ProbP {
+  -- | Processed gap cost
+    gapP      :: Cost
+  -- | Processed mismatch cost
+  , mismatchP :: Int -> Int -> Cost
+  -- | Processed left string
+  , leftP     :: C.ByteString
+  -- | Processed right string
+  , rightP    :: C.ByteString
   }
 
 -- | Data type for instance of sequence alignment problem, minimal alignment
 -- costs for subproblems, and optimal alignment.
+--
+-- TODO: use this data type
+--
 data Data = Data {
-    inst  :: Prob
+  -- | Processed problem instance
+    inst  :: ProbP
+  -- | Minimum alignment cost
   , cost  :: M.Map (Int, Int) Cost
+  -- | Optimal alignment
   , align :: S.Set (Int, Int)
   }
 
 -- | Process raw instance of sequence alignment problem.
-process :: Prob -> Prob'
-process (Prob delta alpha x y) = Prob' delta alpha' x' y'
+process :: Prob -> ProbP
+process (Prob delta alpha x y) = ProbP delta alpha' x' y'
   where
     x' = C.pack ('-' : x)
     y' = C.pack ('-' : y)
     alpha' i j = alpha (x' `C.index` i) (y' `C.index` j)
 
 -- | Computation of minimal alignment costs using state monad for memoization.
-opt :: Prob' -> M.Map (Int, Int) Cost
-opt (Prob' delta alpha x y) = execState (optS m n) (M.fromList $ xs ++ ys)
+opt :: ProbP -> M.Map (Int, Int) Cost
+opt (ProbP delta alpha x y) = execState (optS m n) (M.fromList $ xs ++ ys)
   where
     -- initial state
     m = C.length x - 1
@@ -118,8 +155,8 @@ min3 x y z
 
 -- | Optimal alignment, back tracks through memoized alignment costs to
 -- construct alignment.
-sol :: Prob' -> M.Map (Int, Int) Cost -> [(Int, Int)]
-sol (Prob' delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
+sol :: ProbP -> M.Map (Int, Int) Cost -> [(Int, Int)]
+sol (ProbP delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
   where
     -- recursive back tracking
     helper :: Int -> Int -> [(Int, Int)]
@@ -130,14 +167,7 @@ sol (Prob' delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
       | m M.! (i, j) == delta + m M.! (i, j - 1) = (0, j) : helper i (j - 1)
       | otherwise                                = (i, j) : helper (i - 1) (j - 1)
 
--- | Pretty print optimal alignment.
-pretty :: Prob' -> [(Int, Int)] -> Doc
-pretty (Prob' _ _ x y) =
-  uncurry (on ($$) text) . unzip
-                         . map (\ (i, j) -> (x `C.index` i, y `C.index` j))
-
--- | Compute solution to instance of sequence alignment problem and pretty print
--- optimal alignment.
+-- | Compute solution to instance of sequence alignment problem.
 --
 -- Example for dictionary interface / spell-checking:
 --
@@ -172,3 +202,9 @@ run :: Prob -> Doc
 run p = pretty p' (sol p' $ opt p')
   where
     p' = process p
+
+-- | Pretty print optimal alignment.
+pretty :: ProbP -> [(Int, Int)] -> Doc
+pretty (ProbP _ _ x y) =
+  uncurry (on ($$) text) . unzip
+                         . map (\ (i, j) -> (x `C.index` i, y `C.index` j))

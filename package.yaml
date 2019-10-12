@@ -19,33 +19,34 @@ extra-source-files:
 description: Please see the README on Github at <https://github.com/hubbards/sequence-alignment-haskell#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-- mtl
-- pretty
-- bytestring
-- array
-- containers
+  - base >= 4.7 && < 5
 
 ghc-options: -Wall
 
 library:
   source-dirs: src
   exposed-modules:
-  - Align
-  - Fib
+    - Align
+    - Fib
+  dependencies:
+    - transformers
+    - pretty
+    - bytestring
+    - array
+    - containers
 
 executables:
   app-exe:
     main: Main.hs
     source-dirs: app
     dependencies:
-    - sequence-alignment-haskell
+      - sequence-alignment-haskell
 
 tests:
   tests:
     main: Main.hs
     source-dirs: test
     dependencies:
-    - sequence-alignment-haskell
-    - filepath
-    - doctest >= 0.8
+      - sequence-alignment-haskell
+      - filepath
+      - doctest >= 0.8

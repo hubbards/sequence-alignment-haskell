@@ -9,9 +9,21 @@ module Fib (
   , fibS
   ) where
 
+-- from package transformers
+import Control.Monad.Trans.State (
+    State
+  , get
+  , modify
+  , evalState
+  )
+
+-- from package arrays
 import qualified Data.Array as A
+
+-- from package containers
 import qualified Data.IntMap as M
-import Control.Monad.State
+
+import Control.Monad ( liftM2 )
 
 -- | Computation of Fibonacci numbers using recursion. The argument should be a
 -- natural number.
