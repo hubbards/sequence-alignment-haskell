@@ -41,7 +41,7 @@ the `:m Align` option.
 Suppose we want to compute an alignment of human and hamster DNA. We can do this
 by running the following command
 ```
-$ stack exec main-exe -- res/human.fasta res/hamster.fasta
+$ stack exec app-exe -- res/human.fasta res/hamster.fasta
 ```
 Note that this command might take a minute or so to complete.
 
