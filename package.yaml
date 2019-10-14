@@ -26,27 +26,27 @@ ghc-options: -Wall
 library:
   source-dirs: src
   exposed-modules:
-    - Align
-    - Fib
+  - Align
+  - Fib
   dependencies:
-    - transformers
-    - pretty
-    - bytestring
-    - array
-    - containers
+  - transformers
+  - pretty
+  - bytestring
+  - array
+  - containers
 
 executables:
   app-exe:
     main: Main.hs
     source-dirs: app
     dependencies:
-      - sequence-alignment-haskell
+    - sequence-alignment-haskell
 
 tests:
   tests:
     main: Main.hs
     source-dirs: test
     dependencies:
-      - sequence-alignment-haskell
-      - filepath
-      - doctest >= 0.8
+    - sequence-alignment-haskell
+    - filepath
+    - doctest >= 0.8
