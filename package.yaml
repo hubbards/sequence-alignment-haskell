@@ -30,10 +30,10 @@ library:
   - Fib
   dependencies:
   - transformers
-  - pretty
   - bytestring
-  - array
   - containers
+  - array
+  - pretty
 
 executables:
   app-exe:
@@ -41,6 +41,7 @@ executables:
     source-dirs: app
     dependencies:
     - sequence-alignment-haskell
+    - bytestring
 
 tests:
   tests:

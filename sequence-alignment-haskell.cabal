@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ae78b57ff196b15dfe7e2a70bcb3cfc6641ad836d3bbee2e838df85c8c3f27a3
+-- hash: 43696ea6b4648731be7006d6b4319b150fc85bebab50e8bb26c026eda34ad63b
 
 name:           sequence-alignment-haskell
 version:        0.1.0.0
@@ -52,6 +52,7 @@ executable app-exe
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , sequence-alignment-haskell
   default-language: Haskell2010
 

@@ -36,6 +36,7 @@ module Align (
     Cost
   , Prob (..)
   , ProbP
+  , Data (..)
   , process
   , opt
   , sol
@@ -51,12 +52,12 @@ import Control.Monad.Trans.State (
   , execState
   )
 
+-- from package bytestring
+import qualified Data.ByteString.Char8 as C
+
 -- from package containers
 import qualified Data.Set as S
 import qualified Data.Map as M
-
--- from package bytestring
-import qualified Data.ByteString.Char8 as C
 
 -- from package pretty
 import Text.PrettyPrint (
@@ -81,9 +82,9 @@ data Prob = Prob {
   -- | Mismatch cost
   , mismatch :: Char -> Char -> Cost
   -- | Left string
-  , left     :: String
+  , left     :: C.ByteString
   -- | Right string
-  , right    :: String
+  , right    :: C.ByteString
   }
 
 -- | Data type for processed instance of sequence alignment problem.
@@ -109,7 +110,7 @@ data ProbP = ProbP {
 data Data = Data {
   -- | Processed problem instance
     inst  :: ProbP
-  -- | Minimum alignment cost
+  -- | Minimum alignment cost for subproblems
   , cost  :: M.Map (Int, Int) Cost
   -- | Optimal alignment
   , align :: S.Set (Int, Int)
@@ -119,13 +120,14 @@ data Data = Data {
 process :: Prob -> ProbP
 process (Prob delta alpha x y) = ProbP delta alpha' x' y'
   where
-    x' = C.pack ('-' : x)
-    y' = C.pack ('-' : y)
+    x' = C.cons '-' x
+    y' = C.cons '-' y
     alpha' i j = alpha (x' `C.index` i) (y' `C.index` j)
 
 -- | Computation of minimal alignment costs using state monad for memoization.
 opt :: ProbP -> M.Map (Int, Int) Cost
-opt (ProbP delta alpha x y) = execState (optS m n) (M.fromList $ xs ++ ys)
+opt (ProbP delta alpha x y) =
+  execState (optS m n) (M.fromList $ xs ++ ys)
   where
     -- initial state
     m = C.length x - 1
@@ -134,17 +136,17 @@ opt (ProbP delta alpha x y) = execState (optS m n) (M.fromList $ xs ++ ys)
     ys = zip (zip (repeat 0) [1 .. n]) [j * delta | j <- [0 .. n]]
     -- computation of minimal alignment costs
     optS :: Int -> Int -> State (M.Map (Int, Int) Cost) Cost
-    optS i j = do m <- get
-                  case M.lookup (i, j) m of
-                    Just r  -> return r
-                    Nothing -> do r <- liftM3 (\ a b c -> min3 (alpha i j + a)
+    optS i j = do memo <- get
+                  case M.lookup (i, j) memo of
+                    Just c  -> return c
+                    Nothing -> do c <- liftM3 (\ a b c -> min3 (alpha i j + a)
                                                                (delta + b)
                                                                (delta + c))
                                               (optS (i - 1) (j - 1))
                                               (optS (i - 1) j)
                                               (optS i (j - 1))
-                                  modify (M.insert (i, j) r)
-                                  return r
+                                  modify (M.insert (i, j) c)
+                                  return c
 
 -- minimum of three values
 min3 :: (Ord a) => a -> a -> a -> a
@@ -156,16 +158,18 @@ min3 x y z
 -- | Optimal alignment, back tracks through memoized alignment costs to
 -- construct alignment.
 sol :: ProbP -> M.Map (Int, Int) Cost -> [(Int, Int)]
-sol (ProbP delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
+sol (ProbP delta _ x y) memo = reverse (sol' m n)
   where
+    m = C.length x - 1
+    n = C.length y - 1
     -- recursive back tracking
-    helper :: Int -> Int -> [(Int, Int)]
-    helper i j
-      | i == 0                                   = zip (repeat 0) [1 .. j]
-      | j == 0                                   = zip [1 .. i] (repeat 0)
-      | m M.! (i, j) == delta + m M.! (i - 1, j) = (i, 0) : helper (i - 1) j
-      | m M.! (i, j) == delta + m M.! (i, j - 1) = (0, j) : helper i (j - 1)
-      | otherwise                                = (i, j) : helper (i - 1) (j - 1)
+    sol' :: Int -> Int -> [(Int, Int)]
+    sol' i j
+      | i == 0                                         = zip (repeat 0) [1 .. j]
+      | j == 0                                         = zip [1 .. i] (repeat 0)
+      | memo M.! (i, j) == delta + memo M.! (i - 1, j) = (i, 0) : sol' (i - 1) j
+      | memo M.! (i, j) == delta + memo M.! (i, j - 1) = (0, j) : sol' i (j - 1)
+      | otherwise                                      = (i, j) : sol' (i - 1) (j - 1)
 
 -- | Compute solution to instance of sequence alignment problem.
 --
@@ -181,7 +185,7 @@ sol (ProbP delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
 --     s = S.fromList "aeiouy"
 --     t = S.fromList ['a' .. 'z'] S.\\ s
 -- in
---   run (Prob delta alpha "name" "naem")
+--   run $ Prob delta alpha (C.pack "name") (C.pack "naem")
 -- :}
 -- na-me
 -- naem-
@@ -193,7 +197,7 @@ sol (ProbP delta _ x y) m = reverse $ helper (C.length x - 1) (C.length y - 1)
 --   delta     = 1
 --   alpha x y = if x == y then -2 else 1
 -- in
---   run (Prob delta alpha "ACACACTA" "AGCACACA")
+--   run $ Prob delta alpha (C.pack "ACACACTA") (C.pack "AGCACACA")
 -- :}
 -- A-CACACTA
 -- AGCACAC-A

@@ -17,11 +17,11 @@ import Control.Monad.Trans.State (
   , evalState
   )
 
--- from package arrays
-import qualified Data.Array as A
-
 -- from package containers
 import qualified Data.IntMap as M
+
+-- from package arrays
+import qualified Data.Array as A
 
 import Control.Monad ( liftM2 )
 

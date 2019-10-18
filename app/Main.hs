@@ -1,17 +1,24 @@
 -- TODO: comment
 
-import System.Environment
+-- from bytestring package
+import qualified Data.ByteString.Char8 as C
 
-import Align
+import System.Environment ( getArgs )
+
+import Align (
+    Cost
+  , Prob (..)
+  , run
+  )
 
 main :: IO ()
 main = do (file1 : file2 : _) <- getArgs
-          (title1 : seq1) <- lines <$> readFile file1
-          (title2 : seq2) <- lines <$> readFile file2
-          let seq1' = unlines seq1
-              seq2' = unlines seq2
-          putStrLn ("Loaded: " ++ title1)
-          putStrLn ("Loaded: " ++ title2)
+          (title1 : seq1) <- C.lines <$> C.readFile file1
+          (title2 : seq2) <- C.lines <$> C.readFile file2
+          let seq1' = C.unlines seq1
+              seq2' = C.unlines seq2
+          putStrLn ("Loaded: " ++ show title1)
+          putStrLn ("Loaded: " ++ show title2)
           putStrLn "Alignment:"
           print (run $ Prob delta alpha seq1' seq2')
 
