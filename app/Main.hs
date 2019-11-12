@@ -3,12 +3,17 @@
 -- from bytestring package
 import qualified Data.ByteString.Char8 as C
 
+-- from package pretty
+import Text.PrettyPrint ( Doc )
+
 import System.Environment ( getArgs )
 
 import Align (
     Cost
-  , Prob (..)
-  , run
+  , Mismatch
+  , Result
+  , compOpt
+  , pretty
   )
 
 main :: IO ()
@@ -20,10 +25,17 @@ main = do (file1 : file2 : _) <- getArgs
           putStrLn ("Loaded: " ++ show title1)
           putStrLn ("Loaded: " ++ show title2)
           putStrLn "Alignment:"
-          print (run $ Prob delta alpha seq1' seq2')
+          print (helper seq1' seq2')
 
-delta :: Cost
-delta = 2
-
-alpha :: Char -> Char -> Cost
-alpha a b = if a == b then -2 else 1
+helper :: C.ByteString -> C.ByteString -> Doc
+helper xs ys = pretty gapChar align where
+  (cost, align) = compOpt gap mismatch xs ys
+  -- gap character
+  gapChar :: Char
+  gapChar = '-'
+  -- gap penalty
+  gap :: Cost
+  gap = 2
+  -- mismatch cost function
+  mismatch :: Mismatch Char
+  mismatch a b = if a == b then -2 else 1
