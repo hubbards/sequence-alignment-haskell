@@ -37,9 +37,9 @@ module Align (
   , Mismatch
 
   , Align
+  , getAlign
   , getLeft
   , getRight
-  , getBoth
   , pretty
 
   , Result
@@ -53,6 +53,9 @@ import Control.Monad.Trans.State (
   , modify
   , execState
   )
+
+-- from package extra
+import Data.Tuple.Extra ( both )
 
 -- from package bytestring
 import qualified Data.ByteString.Char8 as C
@@ -72,10 +75,7 @@ import Text.PrettyPrint (
   )
 
 import Data.Maybe ( fromMaybe )
-import Control.Arrow (
-    (***)
-  , (&&&)
-  )
+import Control.Arrow ( (***) )
 import Control.Monad ( liftM3 )
 
 -- | Type synonym for alignment cost.
@@ -142,34 +142,27 @@ min3 x y z
   | otherwise        = x
 
 -- | Type synonym for alignment.
-newtype Align a = Align { getAlign :: [(a, a)] }
+newtype Align a = Align { getAlign' :: [(a, a)] }
+
+-- | Get alignment for both left and right strings.
+getAlign :: Align a -> ([a], [a])
+getAlign = unzip . getAlign'
 
 -- | Get alignment for left string.
 getLeft :: Align a -> [a]
-getLeft = map fst . getAlign
+getLeft = fst . getAlign
 
 -- | Get alignment for right string.
 getRight :: Align a -> [a]
-getRight = map snd . getAlign
+getRight = snd . getAlign
 
--- | Get alignment for both left and right strings.
-getBoth :: Align a -> ([a], [a])
-getBoth = unzip . getAlign
+-- | Helper function similar to 'Data.Bifunctor.bimap'.
+abimap :: (a -> b) -> (a -> b) -> Align a -> Align b
+abimap f g = Align . map (f *** g) . getAlign'
 
--- TODO: replace with arrow instance
-helper1 :: (a -> b) -> (a -> b) -> Align a -> Align b
-helper1 f g = Align . map (f *** g) . getAlign
-
--- TODO: replace with arrow instance
-helper2 :: (a -> b) -> Align a -> Align b
-helper2 f = Align . map (both f) . getAlign
-
--- | Apply function to both components of pair.
---
--- TODO: import from external package
---
-both :: (a -> b) -> (a, a) -> (b, b)
-both f (x, y) = (f x, f y)
+-- | Helper function similar to 'Data.Functor.map'.
+amap :: (a -> b) -> Align a -> Align b
+amap f = Align . map (both f) . getAlign'
 
 -- | Make alignment by backtracking through alignment costs for subproblems.
 --
@@ -189,8 +182,8 @@ mkAlign (Config gap _ m n) memo = Align $ reverse (back m n) where
 -- | Pretty printer.
 pretty :: Char -> Align (Maybe Char) -> Doc
 pretty gapChar align = text xs $+$ text ys where
-  align'   = helper2 (fromMaybe gapChar) align
-  (xs, ys) = getBoth align'
+  align'   = amap (fromMaybe gapChar) align
+  (xs, ys) = getAlign align'
 
 -- | Type synonym for result consisting of cost and alignment.
 type Result = (Cost, Align (Maybe Char))
@@ -229,12 +222,11 @@ type Result = (Cost, Align (Maybe Char))
 -- AGCACAC-A
 --
 compOpt :: Cost -> Mismatch Char -> C.ByteString -> C.ByteString -> Result
-compOpt gap mismatch xs ys = (cost, align') where
+compOpt gap mismatch xs ys = (cost, align) where
   config@(Config _ _ m n) = mkConfig gap mismatch xs ys
   memo                    = compOptCosts config
   cost                    = memo M.! (m, n)
-  align                   = mkAlign config memo
-  align'                  = helper1 (sindex xs) (sindex ys) align
+  align                   = abimap (sindex xs) (sindex ys) (mkAlign config memo)
 
 -- | Safe index function.
 --
