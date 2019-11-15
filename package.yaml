@@ -21,7 +21,7 @@ description: Please see the README on Github at <https://github.com/hubbards/seq
 dependencies:
   - base >= 4.7 && < 5
 
-ghc-options: -Wall
+# ghc-options: -Wall
 
 library:
   source-dirs: src
@@ -30,6 +30,7 @@ library:
   - Fib
   dependencies:
   - transformers
+  - extra
   - bytestring
   - containers
   - array
