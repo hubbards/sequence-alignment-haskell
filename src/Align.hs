@@ -156,13 +156,14 @@ getLeft = fst . getAlign
 getRight :: Align a -> [a]
 getRight = snd . getAlign
 
--- | Helper function similar to 'Data.Bifunctor.bimap'.
-abimap :: (a -> b) -> (a -> b) -> Align a -> Align b
-abimap f g = Align . map (f *** g) . getAlign'
+alignMap :: ((a, a) -> (b, b)) -> Align a -> Align b
+alignMap f = Align . map f . getAlign'
 
--- | Helper function similar to 'Data.Functor.map'.
-amap :: (a -> b) -> Align a -> Align b
-amap f = Align . map (both f) . getAlign'
+mapBoth :: (a -> b) -> Align a -> Align b
+mapBoth = alignMap . both
+
+mapEach :: (a -> b) -> (a -> b) -> Align a -> Align b
+mapEach f g = alignMap (f *** g)
 
 -- | Make alignment by backtracking through alignment costs for subproblems.
 --
@@ -182,7 +183,7 @@ mkAlign (Config gap _ m n) memo = Align $ reverse (back m n) where
 -- | Pretty printer.
 pretty :: Char -> Align (Maybe Char) -> Doc
 pretty gapChar align = text xs $+$ text ys where
-  align'   = amap (fromMaybe gapChar) align
+  align'   = mapBoth (fromMaybe gapChar) align
   (xs, ys) = getAlign align'
 
 -- | Type synonym for result consisting of cost and alignment.
@@ -226,7 +227,7 @@ compOpt gap mismatch xs ys = (cost, align) where
   config@(Config _ _ m n) = mkConfig gap mismatch xs ys
   memo                    = compOptCosts config
   cost                    = memo M.! (m, n)
-  align                   = abimap (sindex xs) (sindex ys) (mkAlign config memo)
+  align                   = mapEach (sindex xs) (sindex ys) (mkAlign config memo)
 
 -- | Safe index function.
 --
