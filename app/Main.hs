@@ -11,9 +11,8 @@ import System.Environment ( getArgs )
 import Align (
     Cost
   , Mismatch
-  , Result
-  , compOpt
   , pretty
+  , compOpt
   )
 
 main :: IO ()

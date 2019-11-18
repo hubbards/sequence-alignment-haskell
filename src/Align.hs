@@ -37,12 +37,12 @@ module Align (
   , Mismatch
 
   , Align
+  , MAlign
   , getAlign
   , getLeft
   , getRight
   , pretty
 
-  , Result
   , compOpt
   ) where
 
@@ -141,8 +141,11 @@ min3 x y z
   | x >= y           = y
   | otherwise        = x
 
--- | Type synonym for alignment.
+-- | Type for alignment.
 newtype Align a = Align { getAlign' :: [(a, a)] }
+
+-- | Type synonym for alignment with gaps represented by 'Nothing'.
+type MAlign a = Align (Maybe a)
 
 -- | Get alignment for both left and right strings.
 getAlign :: Align a -> ([a], [a])
@@ -181,13 +184,10 @@ mkAlign (Config gap _ m n) memo = Align $ reverse (back m n) where
     | otherwise                                    = (i - 1, j - 1) : back (i - 1) (j - 1)
 
 -- | Pretty printer.
-pretty :: Char -> Align (Maybe Char) -> Doc
+pretty :: Char -> MAlign Char -> Doc
 pretty gapChar align = text xs $+$ text ys where
   align'   = mapBoth (fromMaybe gapChar) align
   (xs, ys) = getAlign align'
-
--- | Type synonym for result consisting of cost and alignment.
-type Result = (Cost, Align (Maybe Char))
 
 -- | Computation of minimum cost and alignment.
 --
@@ -222,7 +222,7 @@ type Result = (Cost, Align (Maybe Char))
 -- A-CACACTA
 -- AGCACAC-A
 --
-compOpt :: Cost -> Mismatch Char -> C.ByteString -> C.ByteString -> Result
+compOpt :: Cost -> Mismatch Char -> C.ByteString -> C.ByteString -> (Cost, MAlign Char)
 compOpt gap mismatch xs ys = (cost, align) where
   config@(Config _ _ m n) = mkConfig gap mismatch xs ys
   memo                    = compOptCosts config
