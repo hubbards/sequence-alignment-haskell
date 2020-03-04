@@ -2,7 +2,7 @@ name: sequence-alignment-haskell
 version: 0.1.0.0
 github: "hubbards/sequence-alignment-haskell"
 license: MIT
-author:  "Spencer Hubbard"
+author: "Spencer Hubbard"
 copyright: "2018 Spencer Hubbard"
 
 extra-source-files:
